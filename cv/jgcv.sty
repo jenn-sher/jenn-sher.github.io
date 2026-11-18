@@ -1,0 +1,180 @@
+% =====================================================================
+%  jgcv.sty  ·  Estilo del CV de Jennifer Guerrero López
+%
+%  Compilar con XeLaTeX (no con pdfLaTeX):
+%      latexmk -xelatex Jennifer-Guerrero-CV-ES.tex
+%      latexmk -xelatex Jennifer-Guerrero-CV-EN.tex
+%  En Overleaf: Menu > Compiler > XeLaTeX, y sube este archivo junto
+%  con la carpeta fonts/.
+%
+%  Diseño pensado para ATS: una sola columna, texto real (sin íconos
+%  ni tablas de maquetación), encabezados estándar y datos de contacto
+%  en el cuerpo del documento.
+%  Tipografía: Inter, de Rasmus Andersson (SIL Open Font License 1.1).
+% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jgcv}[2026/11/18 v1.1 CV Jennifer Guerrero]
+
+\RequirePackage{iftex}
+\ifPDFTeX
+  \PackageError{jgcv}{Este CV usa fontspec: compila con XeLaTeX}%
+    {Ejemplo: latexmk -xelatex Jennifer-Guerrero-CV-ES.tex}
+\fi
+% Espacios reales entre palabras dentro del PDF: así ningún lector de CV
+% (ATS) junta las palabras al extraer el texto.
+\ifXeTeX
+  \XeTeXinterwordspaceshaping=2
+\fi
+% Mismo espacio en todas partes (también tras comas y mayúsculas): así
+% cada espacio sale como carácter real.
+\AtBeginDocument{%
+  \frenchspacing
+  \count255=`\A
+  \loop\sfcode\count255=1000 \ifnum\count255<`\Z\advance\count255 by 1 \repeat
+  \count255="00C0
+  \loop\sfcode\count255=1000 \ifnum\count255<"00DE\advance\count255 by 1 \repeat
+}
+
+% ---------- Página ----------------------------------------------------
+\RequirePackage[letterpaper,
+  top=0.46in, bottom=0.4in, left=0.66in, right=0.66in]{geometry}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\RequirePackage{xcolor}
+\RequirePackage{enumitem}
+\RequirePackage{tikz}
+\RequirePackage{fontspec}
+
+% ---------- Paleta: lila, morado y rosa -------------------------------
+\definecolor{ink}{HTML}{1D1D1F}     % texto principal
+\definecolor{ink2}{HTML}{3A3A40}    % texto secundario
+\definecolor{muted}{HTML}{6E6E73}   % fechas y detalles
+\definecolor{violet}{HTML}{6B3FC4}  % acento principal
+\definecolor{orchid}{HTML}{A24BD0}  % transición del degradado
+\definecolor{rose}{HTML}{DB4F92}    % acento rosa
+\definecolor{lilac}{HTML}{E2D7FA}   % líneas finas
+
+\pgfdeclarehorizontalshading{jgbrand}{100bp}{%
+  color(0bp)=(violet); color(55bp)=(orchid); color(100bp)=(rose)}
+
+% ---------- Tipografía -------------------------------------------------
+% Sin alternativas contextuales (calt): Inter cambia paréntesis y el
+% signo + por variantes que algunos lectores de PDF y ATS no reconocen.
+\defaultfontfeatures{Contextuals=AlternateOff}
+\setmainfont{Inter}[
+  Path           = fonts/ ,
+  Extension      = .otf ,
+  UprightFont    = *-Regular ,
+  ItalicFont     = *-Italic ,
+  BoldFont       = *-SemiBold ,
+  BoldItalicFont = *-SemiBoldItalic ,
+]
+\newfontfamily\jgmedium{Inter}[
+  Path=fonts/, Extension=.otf, UprightFont=*-Medium]
+\newfontfamily\jgdisplay{InterDisplay}[
+  Path=fonts/, Extension=.otf, UprightFont=*-SemiBold, BoldFont=*-Bold]
+
+\renewcommand{\normalsize}{\fontsize{9.2}{12.05}\selectfont}
+\AtBeginDocument{\normalsize\color{ink}\raggedright}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+% Relleno que empuja fechas al margen derecho (gana a \parfillskip)
+\newcommand{\jgfill}{\hspace{0pt plus 1filll}}
+% Separador de punto medio
+\newcommand{\cvsep}{\unskip\enspace{\color{violet!45}\textperiodcentered}\enspace\ignorespaces}
+% Año o periodo alineado a la derecha, con cifras tabulares
+\newcommand{\cvyear}[1]{\jgfill{\color{muted}\addfontfeature{Numbers=Monospaced}#1}}
+
+% ---------- Encabezado -------------------------------------------------
+\newcommand*{\jg@name}{}
+\newcommand*{\jg@headline}{}
+\newcommand*{\jg@contact}{}
+\newcommand*{\jg@links}{}
+\newcommand{\cvname}[1]{\renewcommand*{\jg@name}{#1}}
+\newcommand{\cvheadline}[1]{\renewcommand*{\jg@headline}{#1}}
+\newcommand{\cvcontact}[1]{\renewcommand*{\jg@contact}{#1}}
+% Segunda línea opcional del encabezado (LinkedIn, portafolio)
+\newcommand{\cvlinks}[1]{\renewcommand*{\jg@links}{#1}}
+
+\newcommand{\makecvheader}{%
+  {\jgdisplay\fontsize{24.5}{27}\selectfont\color{ink}\jg@name\par}%
+  \vspace{4pt}%
+  {\jgmedium\fontsize{10.8}{13.5}\selectfont\color{violet}\jg@headline\par}%
+  \vspace{3pt}%
+  {\fontsize{9}{11.5}\selectfont\color{muted}\jg@contact\par
+   \ifx\jg@links\@empty\else\jg@links\par\fi}%
+  \vspace{8pt}%
+  \noindent\tikz{\shade[shading=jgbrand] (0,0) rectangle (\linewidth,1.6pt);}\par
+}
+
+% ---------- Secciones ---------------------------------------------------
+\newcommand{\cvsection}[1]{%
+  \par\addvspace{6.5pt}%
+  \noindent{\fontsize{10.6}{13}\selectfont\bfseries\color{violet}#1}%
+  \hspace{7pt}{\color{lilac}\leaders\hrule height 3.5pt depth -2.9pt\hskip 0pt plus 1filll}%
+  \par\nobreak\vspace{2pt}%
+}
+
+% ---------- Entradas ----------------------------------------------------
+% \cventry{Puesto o grado}{Fecha}{Organización}{Área o detalle (opcional)}
+\newcommand{\cventry}[4]{%
+  \par\addvspace{3.8pt}%
+  \noindent{\bfseries\fontsize{9.7}{12.2}\selectfont #1}\cvyear{#2}\par
+  \noindent{\jgmedium\color{violet}#3}%
+  \if\relax\detokenize{#4}\relax\else\cvsep{\color{muted}#4}\fi\par
+  \nobreak\vspace{0.5pt}%
+}
+% Nota breve bajo una entrada
+\newcommand{\cvnote}[1]{\par\vspace{1.5pt}{\color{ink2}#1}\par}
+% Línea simple con texto destacado y año a la derecha
+% \cvline{Título}{Detalle}{Año}
+\newcommand{\cvline}[3]{%
+  \par\addvspace{3.5pt}%
+  \noindent{\bfseries #1}\cvsep{\color{muted}#2}\cvyear{#3}\par}
+
+\newlist{cvitems}{itemize}{1}
+\setlist[cvitems]{
+  label      = {\color{violet}\textbullet},
+  leftmargin = 1.0em,
+  labelsep   = 0.5em,
+  itemsep    = 1pt,
+  parsep     = 0pt,
+  topsep     = 2pt,
+  partopsep  = 0pt,
+}
+
+% ---------- Habilidades ---------------------------------------------------
+% \cvskill{Etiqueta}{elemento; elemento; elemento}
+\ExplSyntaxOn
+\seq_new:N \l__jg_items_seq
+\NewDocumentCommand{\cvlist}{m}
+  {
+    \seq_set_split:Nnn \l__jg_items_seq { ; } {#1}
+    \seq_map_indexed_inline:Nn \l__jg_items_seq
+      {
+        \int_compare:nNnT {##1} > {1} { \jgsep }
+        \mbox{##2}
+      }
+  }
+\ExplSyntaxOff
+% Separador que desaparece si la línea se corta justo ahí
+\newcommand{\jgsep}{\unskip\discretionary{}{}{\hbox{\kern0.42em\textcolor{violet!45}{\textperiodcentered}\kern0.42em}}}
+
+\newlength{\jglabelwidth}
+\setlength{\jglabelwidth}{7.0em}
+\newcommand{\cvskill}[2]{%
+  \par\begingroup\exhyphenpenalty=0
+  \noindent\hangindent=\jglabelwidth\hangafter=1
+  \makebox[\jglabelwidth][l]{\jgmedium\color{ink}#1}{\color{ink2}\cvlist{#2}}\par
+  \endgroup\vspace{2pt}%
+}
+
+% ---------- Enlaces y metadatos -------------------------------------------
+\RequirePackage{hyperref}
+\hypersetup{hidelinks, pdfcreator={XeLaTeX + jgcv.sty}}
+\urlstyle{same}
+
+\endinput
