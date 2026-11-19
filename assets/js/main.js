@@ -148,6 +148,23 @@
     timeline.style.setProperty("--p", progress.toFixed(3));
   }
 
+  // La barra se aparta mientras la vitrina 3D o la animación de texturas
+  // ocupan la pantalla, y vuelve cuando la animación ya casi salió.
+  function updateTuck() {
+    if (!nav) return;
+    var tuck = false;
+    if (!nav.classList.contains("is-open")) {
+      var vh = window.innerHeight;
+      var navH = nav.offsetHeight || 56;
+      var tracks = document.querySelectorAll(".showcase.is-live [data-sc-track], .tex.is-live [data-tex-track]");
+      for (var i = 0; i < tracks.length && !tuck; i++) {
+        var r = tracks[i].getBoundingClientRect();
+        tuck = r.top <= navH && r.bottom >= vh * 0.6;
+      }
+    }
+    nav.classList.toggle("is-tucked", tuck);
+  }
+
   var ticking = false;
   function onScroll() {
     if (ticking) return;
@@ -155,6 +172,7 @@
     window.requestAnimationFrame(function () {
       ticking = false;
       if (nav) nav.classList.toggle("is-scrolled", window.scrollY > 4);
+      updateTuck();
       updateTimeline();
     });
   }
@@ -444,13 +462,17 @@
       return;
     }
 
-    // Registra la visita. La ruta no incluye ?lang= para que ES y EN cuenten igual.
-    window.goatcounter = { path: function () { return location.pathname || "/"; } };
-    var s = document.createElement("script");
-    s.async = true;
-    s.src = "https://gc.zgo.at/count.js";
-    s.setAttribute("data-goatcounter", "https://" + code + ".goatcounter.com/count");
-    document.head.appendChild(s);
+    // Registra la visita sólo en el sitio publicado: las vistas previas y las
+    // pruebas en la computadora no suman. La ruta no incluye ?lang= para que
+    // ES y EN cuenten igual.
+    if (isLive) {
+      window.goatcounter = { path: function () { return location.pathname || "/"; } };
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://gc.zgo.at/count.js";
+      s.setAttribute("data-goatcounter", "https://" + code + ".goatcounter.com/count");
+      document.head.appendChild(s);
+    }
 
     // Muestra el total del sitio (GoatCounter lo guarda en caché hasta 4 horas)
     if (!window.fetch) return;

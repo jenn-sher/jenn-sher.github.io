@@ -470,29 +470,32 @@
       body.legend = legend;
     }
 
-    // Versión para celular: una fila por atributo, punto de la fórmula y marca del promedio
-    var DX0 = 0, DX1 = 0;
+    // Versión para celular: una fila por atributo con el nombre arriba y la
+    // escala de 1 a 5 a todo lo ancho. La barra corta une el promedio con la fórmula.
+    var DX0 = 0, DX1 = 0, segs = [];
     function dx(v) { return DX0 + (v - 1) / 4 * (DX1 - DX0); }
     function buildDots() {
       body.textContent = "";
       var names = ATTR[JG.lang()];
-      var W = cw(body), rowH = 27, top = 26;
-      DX0 = 146; DX1 = W - 14;
-      var H = top + N * rowH + 8;
-      svg = el("svg", { viewBox: "0 0 " + W + " " + H, "class": "viz-svg", role: "img", "aria-label": JG.lang() === "en" ? "Sensory profile by attribute" : "Perfil sensorial por atributo" }, body);
+      var W = cw(body), rowH = 40, top = 24;
+      DX0 = 8; DX1 = W - 10;
+      var H = top + N * rowH + 4;
+      svg = el("svg", { viewBox: "0 0 " + W + " " + H, "class": "viz-svg viz-rows", role: "img", "aria-label": JG.lang() === "en" ? "Sensory profile by attribute" : "Perfil sensorial por atributo" }, body);
       for (var v = 1; v <= 5; v++) {
-        el("line", { x1: dx(v), x2: dx(v), y1: top - 6, y2: H - 6, "class": "grid" }, svg);
-        el("text", { x: dx(v), y: 13, "text-anchor": "middle", "class": "ax" }, svg).textContent = String(v);
+        el("line", { x1: dx(v), x2: dx(v), y1: top - 4, y2: H - 4, "class": "grid" }, svg);
+        el("text", { x: dx(v), y: 12, "text-anchor": v === 1 ? "start" : v === 5 ? "end" : "middle", "class": "ax" }, svg).textContent = String(v);
       }
-      dots = [];
+      dots = []; segs = [];
       for (var k = 0; k < N; k++) {
-        var y = top + k * rowH + rowH / 2;
-        el("text", { x: DX0 - 12, y: y + 4, "text-anchor": "end", "class": "ax" }, svg).textContent = names[k];
+        var y0 = top + k * rowH, y = y0 + 28;
+        el("text", { x: DX0, y: y0 + 14, "class": "ax row-name" }, svg).textContent = names[k];
+        el("line", { x1: dx(1), x2: dx(5), y1: y, y2: y, "class": "track" }, svg);
+        segs.push(el("line", { x1: dx(AVG[k]).toFixed(1), x2: dx(shown[k]).toFixed(1), y1: y, y2: y, stroke: "var(--s1)", "stroke-opacity": "0.35", "stroke-width": "3", "stroke-linecap": "round" }, svg));
         el("line", { x1: dx(AVG[k]), x2: dx(AVG[k]), y1: y - 7, y2: y + 7, stroke: "var(--s-muted)", "stroke-width": "2", "stroke-linecap": "round" }, svg);
-        var d = el("circle", { cx: dx(shown[k]).toFixed(1), cy: y, r: 5.5, fill: "var(--s1)", stroke: "#f5f3fa", "stroke-width": "2" }, svg);
+        var d = el("circle", { cx: dx(shown[k]).toFixed(1), cy: y, r: 6, fill: "var(--s1)", stroke: "var(--mist)", "stroke-width": "2" }, svg);
         dots.push(d);
-        (function (k, y) {
-          var hit = el("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, "class": "hit" }, svg);
+        (function (k, y0) {
+          var hit = el("rect", { x: 0, y: y0, width: W, height: rowH, "class": "hit" }, svg);
           hit.addEventListener("pointermove", function (ev) {
             var r = body.getBoundingClientRect();
             tip.show(ev.clientX - r.left, ev.clientY - r.top, [
@@ -501,7 +504,7 @@
             ]);
           });
           hit.addEventListener("pointerleave", function () { tip.hide(); });
-        })(k, y);
+        })(k, y0);
       }
       var legend = document.createElement("div");
       legend.className = "viz-legend";
@@ -518,7 +521,7 @@
 
     function place(vals) {
       if (mode === "dots") {
-        vals.forEach(function (v, k) { dots[k].setAttribute("cx", dx(v).toFixed(1)); });
+        vals.forEach(function (v, k) { dots[k].setAttribute("cx", dx(v).toFixed(1)); segs[k].setAttribute("x2", dx(v).toFixed(1)); });
         return;
       }
       poly.setAttribute("points", polyStr(vals));

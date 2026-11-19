@@ -13,7 +13,7 @@
 %  Tipografía: Inter, de Rasmus Andersson (SIL Open Font License 1.1).
 % =====================================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{jgcv}[2026/11/18 v1.1 CV Jennifer Guerrero]
+\ProvidesPackage{jgcv}[2026/11/18 v1.2 CV Jennifer Guerrero]
 
 \RequirePackage{iftex}
 \ifPDFTeX
@@ -175,6 +175,12 @@
 % ---------- Enlaces y metadatos -------------------------------------------
 \RequirePackage{hyperref}
 \hypersetup{hidelinks, pdfcreator={XeLaTeX + jgcv.sty}}
+% Con \XeTeXinterwordspaceshaping=2, XeTeX une el texto vecino en una sola
+% pieza y sólo el primer enlace de cada línea queda clicable. Un \kern0pt a
+% cada lado separa el enlace y todos funcionan. Conviene que cada enlace
+% quede junto a un \cvsep o al final de la línea, para no perder el espacio.
+\let\jg@href\href
+\renewcommand{\href}[2]{\kern0pt\jg@href{#1}{#2}\kern0pt}
 \urlstyle{same}
 
 \endinput

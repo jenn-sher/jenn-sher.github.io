@@ -13,6 +13,10 @@
 }
 
 :root {
+  /* El diseño es claro. "only" evita que el modo nocturno de algunos
+     navegadores (Brave, Chrome en Android) oscurezca la página a la fuerza
+     y deje el 3D y las gráficas con colores que no le corresponden. */
+  color-scheme: only light;
   --snow: #ffffff;
   --mist: #f5f3fa;
   --ink: #1d1d1f;
@@ -141,8 +145,12 @@ html[data-lang="en"] [lang="es"] { display: none !important; }
   z-index: 50;
   isolation: isolate;
   border-bottom: 1px solid transparent;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, transform 0.45s var(--ease);
 }
+/* Mientras una animación fija ocupa la pantalla, la barra se aparta.
+   Regresa al salir de la animación o si alguien llega a ella con el teclado. */
+.nav.is-tucked { transform: translateY(calc(-100% - 2px)); }
+.nav.is-tucked:focus-within { transform: none; }
 /* El vidrio va en un pseudoelemento: así el menú móvil puede esmerilar
    la página que tiene detrás (un backdrop-filter anidado no lo haría) */
 .nav::before {
@@ -1173,11 +1181,14 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
 
 /* Modo vivo: recorrido largo con un escenario fijo */
 .showcase.is-live .sc-track { height: 720vh; }
+/* El escenario mide el alto grande de la pantalla (barra del navegador
+   escondida) para que el piso llegue hasta abajo; lo que va pegado al
+   borde inferior se sube lo que ocupa esa barra cuando está visible. */
 .showcase.is-live .sc-stage {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100lvh;
   padding: 0;
   overflow: hidden;
   background: var(--stage);
@@ -1190,7 +1201,7 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
 .showcase.is-live .sc-intro {
   position: absolute;
   left: 0; right: 0;
-  top: calc(var(--nav-h) + clamp(28px, 6vh, 64px));
+  top: clamp(36px, 8vh, 80px);
   z-index: 2;
   text-align: center;
 }
@@ -1240,6 +1251,7 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   position: absolute;
   z-index: 2;
   left: 0; right: 0; bottom: clamp(36px, 9vh, 88px);
+  bottom: calc(clamp(36px, 9vh, 88px) + (100lvh - 100svh));
   padding: 0 22px;
   font-size: clamp(1.375rem, 2.6vw, 2.125rem);
   font-weight: 700;
@@ -1272,6 +1284,7 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   .showcase.is-live .sc-copy {
     left: 12px; right: 12px;
     bottom: 12px;
+    bottom: calc(12px + (100lvh - 100svh));
     width: auto;
     padding: 18px 18px 16px;
     border-radius: 24px;
@@ -1328,7 +1341,6 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   display: grid;
   gap: 4px;
   margin-top: 26px;
-  counter-reset: step;
 }
 .tex-steps li {
   position: relative;
@@ -1336,9 +1348,10 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   color: rgba(30, 16, 51, 0.5);
   transition: color 0.4s ease;
 }
+/* Números fijos: en celular sólo se muestra el paso actual y un contador
+   de CSS no avanza en los pasos ocultos */
 .tex-steps li::before {
-  counter-increment: step;
-  content: counter(step);
+  content: "1";
   position: absolute;
   left: 0; top: 10px;
   display: grid;
@@ -1351,6 +1364,9 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   font-weight: 700;
   transition: background-color 0.4s ease, color 0.4s ease;
 }
+.tex-steps li:nth-child(2)::before { content: "2"; }
+.tex-steps li:nth-child(3)::before { content: "3"; }
+.tex-steps li:nth-child(4)::before { content: "4"; }
 .tex-steps strong { display: block; color: rgba(30, 16, 51, 0.62); font-weight: 600; transition: color 0.4s ease; }
 .tex-steps li > span { display: block; font-size: 15px; line-height: 1.45; }
 .tex-steps li.is-on { color: rgba(30, 16, 51, 0.82); }
@@ -1380,10 +1396,11 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
   position: sticky;
   top: 0;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100lvh;
   display: flex;
   align-items: center;
-  padding: calc(var(--nav-h) + 20px) 0 28px;
+  padding: clamp(24px, 5vh, 48px) 0 28px;
+  padding-bottom: calc(28px + (100lvh - 100svh));
 }
 @media (max-width: 979px) {
   .tex.is-live .tex-track { height: 300vh; }
@@ -1512,6 +1529,10 @@ a.tile:focus-visible .tile-more::after { background: #fff; }
 .viz-svg .ax { fill: var(--graphite); font-size: 12px; }
 .viz-svg .val { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
 .viz-svg .grid { stroke: rgba(29, 29, 31, 0.1); stroke-width: 1; }
+/* Filas del perfil sensorial en celular: el nombre lleva un halo del color
+   de la tarjeta para que las líneas de la escala no lo crucen */
+.viz-rows .row-name { fill: var(--ink); font-size: 12.5px; font-weight: 500; paint-order: stroke; stroke: var(--mist); stroke-width: 5px; stroke-linejoin: round; }
+.viz-rows .track { stroke: rgba(29, 29, 31, 0.08); stroke-width: 1; }
 .viz-svg .hit { fill: transparent; cursor: default; }
 .viz-svg .hit:focus { outline: none; }
 .viz-svg .hit:focus-visible + .mark,
